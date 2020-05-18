@@ -15,7 +15,11 @@
 const char* ssid = "TP-LINK_F552";
 const char* password = "23395985";
 // set ip address
-IPAddress ip = (192,168.0,11);
+IPAddress local_IP(192, 168, 0, 21);
+IPAddress gateway(192, 168, 01, 1);
+IPAddress subnet(255, 255, 255, 0);
+IPAddress primaryDNS(8, 8, 8, 8); //optional
+IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
 //Your IP address or domain name with URL path
 const char* serverstate = "http://192.168.0.21/state";
@@ -55,6 +59,8 @@ void setup() {
   display.clearDisplay();
   display.setTextColor(WHITE);
   */
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");}
   WiFi.begin(ssid, password);
   Serial.println("Connecting");
   while(WiFi.status() != WL_CONNECTED) { 
