@@ -9,17 +9,22 @@
   copies or substantial portions of the Software.
 */
 
-#include <WiFi.h>
-#include <HTTPClient.h>
 
-const char* ssid = "TP-LINK_F552";
+
+//impostazione router casa nuova piano superiore
+const char* ssid = "TP-LINK_FF52";
 const char* password = "23395985";
+#include "WiFi.h" // ESP32 WiFi include
+#include "HTTPClient.h"
+#include "ESPAsyncWebServer.h"// pre creare server
+//non funziona l'impostazione ip
 // set ip address
 IPAddress local_IP(192, 168, 0, 21);
-IPAddress gateway(192, 168, 01, 1);
+IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8); //optional
 IPAddress secondaryDNS(8, 8, 4, 4); //optional
+
 
 //ledpin falsh è il 4
 #define ledpin 4
@@ -78,34 +83,46 @@ String httpGETRequest(const char* serverName) {
   return payload;
 }
 
+void ConnectToWiFi()
+{
+ 
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to "); Serial.println(ssid);
+ 
+  uint8_t i = 0;
+  while (WiFi.status() != WL_CONNECTED)
+  {
+    Serial.print('.');
+    delay(500);
+ 
+    if ((++i % 16) == 0)
+    {
+      Serial.println(F(" still trying to connect"));
+    }
+  }
+ 
+  Serial.print(F("Connected. My IP address is: "));
+  Serial.println(WiFi.localIP());
+
+    Serial.println("risetto indirizzo ip");
+WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
+
+    Serial.print(F("Connected. My IP address is: "));
+  Serial.println(WiFi.localIP());
+}
+
 void setup() {
   Serial.begin(115200);
+  Serial.println("setto il pin di output del LED ");
   pinMode(ledpin, OUTPUT);    // sets the digital pin 4 led pin as output
-  /*
-  // Address 0x3C for 128x64, you might need to change this value (use an I2C scanner)
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
-  }
-  display.clearDisplay();
-  display.setTextColor(WHITE);
-  */
-  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-    Serial.println("STA Failed to configure");}
-  WiFi.begin(ssid, password);
-  Serial.println("Connecting");
-  while(WiFi.status() != WL_CONNECTED) { 
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("");
-  Serial.print("Connected to WiFi network with IP Address: ");
-  Serial.println(WiFi.localIP());
+  Serial.println("settato il pin di output del LED ");
+  ConnectToWiFi();
 }
 
 
 void loop() {
-  
+  /*
   unsigned long currentMillis = millis();
   
   if(currentMillis - previousMillis >= interval) {
@@ -136,7 +153,7 @@ void loop() {
         Serial.println("connesso pulsante non premuto");
        default:
         Serial.println("possibili problemi di connessione ocn la scheda");
-        }*/
+        }*//*
         inputstate="2";//resettiamao lo stato
         
       
@@ -178,12 +195,12 @@ void loop() {
       display.print("hPa");
            
       display.display();
-      */
+      
       // save the last HTTP GET Request
       previousMillis = currentMillis;
     }
     else {
       Serial.println("WiFi Disconnected");
     }
-  }
+  }*/
 }
