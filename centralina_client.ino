@@ -19,7 +19,7 @@ const char* password = "23395985";
 #include "ESPAsyncWebServer.h"// pre creare server
 //non funziona l'impostazione ip
 // set ip address
-IPAddress local_IP(192, 168, 0, 21);
+IPAddress local_IP(192, 168, 0, 11);
 IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8); //optional
@@ -122,7 +122,7 @@ void setup() {
 
 
 void loop() {
-  /*
+  
   unsigned long currentMillis = millis();
   
   if(currentMillis - previousMillis >= interval) {
@@ -153,7 +153,7 @@ void loop() {
         Serial.println("connesso pulsante non premuto");
        default:
         Serial.println("possibili problemi di connessione ocn la scheda");
-        }*//*
+        }*/
         inputstate="2";//resettiamao lo stato
         
       
@@ -195,12 +195,12 @@ void loop() {
       display.print("hPa");
            
       display.display();
-      
+      */
       // save the last HTTP GET Request
       previousMillis = currentMillis;
     }
     else {
       Serial.println("WiFi Disconnected");
     }
-  }*/
+  }
 }
