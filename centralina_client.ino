@@ -1,14 +1,3 @@
-/*
-  Rui Santos
-  Complete project details at https://RandomNerdTutorials.com/esp32-client-server-wi-fi/
-  
-  Permission is hereby granted, free of charge, to any person obtaining a copy
-  of this software and associated documentation files.
-  
-  The above copyright notice and this permission notice shall be included in all
-  copies or substantial portions of the Software.
-*/
-
 
 
 //impostazione router casa nuova piano superiore
@@ -33,26 +22,6 @@ IPAddress secondaryDNS(8, 8, 4, 4); //optional
 const char* serverNameState = "http://192.168.0.21/state";
 const char* serverNameReset = "http://192.168.0.21/reset";
 
-/*
-const char* serverNameTemp = "http://192.168.4.1/temperature";
-const char* serverNameHumi = "http://192.168.4.1/humidity";
-const char* serverNamePres = "http://192.168.4.1/pressure";
-
-#include <Wire.h>
-//#include <Adafruit_GFX.h>
-//#include <Adafruit_SSD1306.h>
-
-//#define SCREEN_WIDTH 128 // OLED display width, in pixels
-//#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-
-// Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-/*#define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-String temperature;
-String humidity;
-String pressure;
-*/
 unsigned long previousMillis = 0;
 const long interval = 5000; 
 
@@ -157,45 +126,7 @@ void loop() {
         inputstate="2";//resettiamao lo stato
         
       
- 
-     /* temperature = httpGETRequest(serverNameTemp);
-      humidity = httpGETRequest(serverNameHumi);
-      pressure = httpGETRequest(serverNamePres);
-      Serial.println("Temperature: " + temperature + " *C - Humidity: " + humidity + " % - Pressure: " + pressure + " hPa");
-      
-      display.clearDisplay();
-      
-      // display temperature
-      display.setTextSize(2);
-      display.setTextColor(WHITE);
-      display.setCursor(0,0);
-      display.print("T: ");
-      display.print(temperature);
-      display.print(" ");
-      display.setTextSize(1);
-      display.cp437(true);
-      display.write(248);
-      display.setTextSize(2);
-      display.print("C");
-      
-      // display humidity
-      display.setTextSize(2);
-      display.setCursor(0, 25);
-      display.print("H: ");
-      display.print(humidity);
-      display.print(" %"); 
-      
-      // display pressure
-      display.setTextSize(2);
-      display.setCursor(0, 50);
-      display.print("P:");
-      display.print(pressure);
-      display.setTextSize(1);
-      display.setCursor(110, 56);
-      display.print("hPa");
-           
-      display.display();
-      */
+
       // save the last HTTP GET Request
       previousMillis = currentMillis;
     }
