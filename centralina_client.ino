@@ -1,4 +1,5 @@
-
+//DOVREMO fsre un megs bettore char dove inserire indirizzi IP che andremo a integrare con i comandi
+//e un mega vettore dove gestire risposte e stati
 
 //impostazione router casa nuova piano superiore
 const char* ssid = "TP-LINK_FF52";
@@ -13,20 +14,39 @@ IPAddress gateway(192, 168, 0, 1);
 IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(8, 8, 8, 8); //optional
 IPAddress secondaryDNS(8, 8, 4, 4); //optional
+unsigned long previousMillis = 0;
+const long interval = 5000; 
 
 
 //ledpin falsh è il 4
 #define ledpin 4
 
-//Your IP address or domain name with URL path
-const char* serverNameState = "http://192.168.0.21/state";
-const char* serverNameReset = "http://192.168.0.21/reset";
+//Your IP address or domain name with URL path //va bene anche se non sono const(vedo che compils non provsto
+char* serverNameState = "http://192.168.0.21/state";  //è un array non farti ingannare da come è stato dichiarato
+char* serverNameReset = "http://192.168.0.21/reset";  //è un array non farti ingannare da come è stato dichiarato
 
-unsigned long previousMillis = 0;
-const long interval = 5000; 
+// array in cui salviamo gli stati di riposo a gruppi di
+char rip;
+//string in cui salviamo gli stati trigger che interrogheremo
+String triggerint; 
+//stringa in cui abbiamo il trigger a 0 che non ha rilevato niente
+String triggerok; 
 
 
-String httpGETRequest(const char* serverName) {
+//spiegazione array https://www.html.it/pag/15507/cenni-sugli-array-multidimensionali/ ora proviano a mettere in un array multidimensionale tutti gli indirizzi
+//char serveraddress [2][20]={'http://192.168.0.21/http://192.168.0.20/'};  //così sembra compilare, ora avremo un indirizzo ogni 20 celle
+//forse conviene fare l'array con indirizzo e comando così eviti di aggiungerlo dopo, ma prima devi verificare che tu sappia richiamare la parte di array corretta
+char* indirizzilista [2] ={"http://192.168.0.21/state", "http://192.168.0.20/state"}; //forse conviene fare così ma da verificare se funziona se partiamo dal primo
+//altrimenti ti tocca lavorare al metodo sotto, se no cancellalo costruendo ogni volta le frasi
+//numero totale schede da interrogare
+const int ntotbsensor = 3;
+//vettore ultima parte indirizzo IP delle schede, valutare se meglio salvarli in char come nella riga più sotto
+int tipbsensor [ntotbsensor] = {21,21,21};
+//salviamo a parte le ultime due cifre dell'indirizzo IP (quindi saranno a gruppi di 2) dei server sensori in un array di char, lasciamo a fine array uno spazio vuoto da usare eventualmente come terminatore di stringa
+char finip [3] = "21";
+
+
+String httpGETRequest(const char* serverName) { //funzione per chiedere info alle altre schede
   HTTPClient http;
     
   // Your IP address with path or Domain name with URL path 
@@ -45,6 +65,7 @@ String httpGETRequest(const char* serverName) {
   else {
     Serial.print("Error code: ");
     Serial.println(httpResponseCode);
+    String payload = "ERRORE"; 
   }
   // Free resources
   http.end();
@@ -52,7 +73,21 @@ String httpGETRequest(const char* serverName) {
   return payload;
 }
 
-void ConnectToWiFi()
+//funzione per interrogare lo stato trigger o altre cose delle schede
+void askinf(int totask,const char* addressask, char* answer){
+  const unsigned int convlenght = 12; //numero di caratteri da convertire da string a char
+  for(int i=0; i<totask; i++){  //ciclo per interrogare tutte le schede
+    char bufconv [convlenght];  //buffer temporaneo dove salverò i dati in char della string buf
+    String buf= httpGETRequest(&addressask[i]);//acquisisco dato da scheda server
+    buf.toCharArray(bufconv, convlenght); //conversione da string a char di alcuni caatteri
+    for(int e=0; e<convlenght;e++){
+      answer[i*convlenght+e]= bufconv[e]; //salvo il dato nel mega array
+    }
+  }
+}
+
+
+void ConnectToWiFi()  //funzione per connettersi al wifi
 {
  
   WiFi.mode(WIFI_STA);
@@ -97,7 +132,7 @@ void loop() {
   if(currentMillis - previousMillis >= interval) {
      // Check WiFi connection status
     if(WiFi.status()== WL_CONNECTED ){ 
-      String inputstate= httpGETRequest(serverNameState);//acquisisco dato da scheda server
+      String inputstate= httpGETRequest(indirizzilista[0]);//acquisisco dato da scheda server
       Serial.print("Dato ricevuto ");
       Serial.println(inputstate);
       if(inputstate=="1"){
@@ -107,9 +142,9 @@ void loop() {
       if(inputstate=="0"){        
         digitalWrite(ledpin, LOW);
         Serial.println("connesso pulsante non premuto");     
-      }
-      if(inputstate!="0" && inputstate!="1")
-        Serial.println("possibili problemi di connessione ocn la scheda");          
+      }/*
+      if(inputstate!="0" && inputstate!="1" || inputstate=="ERRORE") // probabilmente in futuro lasceremo solo errore
+        Serial.println("possibili problemi di connessione ocn la scheda");          *///non ho capito perché questo if dà errore
 
         /*
       switch (inputstate)
