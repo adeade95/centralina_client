@@ -145,6 +145,8 @@ void loop() {
      // Check WiFi connection status
     if(WiFi.status()== WL_CONNECTED ){ 
       String inputstate= httpGETRequest(indirizzilista[0]);//acquisisco dato da scheda server
+      Serial.print("Interrogazione di ");
+      Serial.println(indirizzilista[0]);
       Serial.print("Dato ricevuto ");
       Serial.println(inputstate);
       if(inputstate=="1"){
