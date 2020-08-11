@@ -36,15 +36,19 @@ String triggerok;
 //spiegazione array https://www.html.it/pag/15507/cenni-sugli-array-multidimensionali/ ora proviano a mettere in un array multidimensionale tutti gli indirizzi
 //char serveraddress [2][20]={'http://192.168.0.21/http://192.168.0.20/'};  //così sembra compilare, ora avremo un indirizzo ogni 20 celle
 //forse conviene fare l'array con indirizzo e comando così eviti di aggiungerlo dopo, ma prima devi verificare che tu sappia richiamare la parte di array corretta
-char* indirizzilista [2] ={"http://192.168.0.21/state", "http://192.168.0.20/state"}; //forse conviene fare così ma da verificare se funziona se partiamo dal primo
-//altrimenti ti tocca lavorare al metodo sotto, se no cancellalo costruendo ogni volta le frasi
 //numero totale schede da interrogare
-const int ntotbsensor = 3;
+const int ntotbsensor = 2;
+char* indirizzilista [ntotbsensor] ={"http://192.168.0.21/state", "http://192.168.0.20/state"}; //sembra andare ma non provato nella funzione di ade ask
+//altrimenti ti tocca lavorare al metodo sotto, se no cancellalo costruendo ogni volta le frasi
 //vettore ultima parte indirizzo IP delle schede, valutare se meglio salvarli in char come nella riga più sotto
-int tipbsensor [ntotbsensor] = {21,21,21};
+//int tipbsensor [ntotbsensor] = {21,21,21};
 //salviamo a parte le ultime due cifre dell'indirizzo IP (quindi saranno a gruppi di 2) dei server sensori in un array di char, lasciamo a fine array uno spazio vuoto da usare eventualmente come terminatore di stringa
-char finip [3] = "21";
+//char finip [3] = "21";
 
+int copyarraychar(int nelements, char* arrayorig, char* arraydest){ //funzione per copiare elementi char da un array a un altra
+  for(int i=0;i< nelements; i++)
+  arraydest[i]=arrayorig[i];
+}
 
 String httpGETRequest(const char* serverName) { //funzione per chiedere info alle altre schede
   HTTPClient http;
