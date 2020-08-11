@@ -74,16 +74,28 @@ String httpGETRequest(const char* serverName) { //funzione per chiedere info all
 }
 
 //funzione per interrogare lo stato trigger o altre cose delle schede
-void askinf(int totask,const char* addressask, char* answer){
+int askinf(int totask,const char* addressask, char* answer){
+  int diverso=0;  //ci serve per sapere se notiamo stati trigger diversi rispetto a quelli letti in passato
+  Serial.print("Interrogo ");
+  Serial.print(totask);
+  Serial.println("schede");
   const unsigned int convlenght = 12; //numero di caratteri da convertire da string a char
   for(int i=0; i<totask; i++){  //ciclo per interrogare tutte le schede
+    Serial.print("Interrogo ");
+    Serial.print(addressask[i]);
     char bufconv [convlenght];  //buffer temporaneo dove salverò i dati in char della string buf
     String buf= httpGETRequest(&addressask[i]);//acquisisco dato da scheda server
+    Serial.print(" ricevuto ");
+    Serial.println(buf);
     buf.toCharArray(bufconv, convlenght); //conversione da string a char di alcuni caatteri
     for(int e=0; e<convlenght;e++){
+      if(answer[i*convlenght+e] != bufconv[e]){
       answer[i*convlenght+e]= bufconv[e]; //salvo il dato nel mega array
+      diverso =1;  //quindi abbiamo notato stati diversi e lo notifichiamo
+      }
     }
   }
+  return diverso;
 }
 
 
