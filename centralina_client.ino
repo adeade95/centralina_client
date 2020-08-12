@@ -35,13 +35,21 @@ const unsigned int ntotbsensor = 3;
 char* indirizzilista [ntotbsensor] ={"http://192.168.0.22/state", "http://192.168.0.21/state", "http://192.168.0.20/state"}; //sembra andare ma non provato nella funzione di ade ask
 // numero pin ingresso digitale schede
 const unsigned int ntotbinputsensor = 12;
-
+//array in cui assegnamo un nome a ogni ingresso di ogni dispositivo
+char* nameinput [ntotbinputsensor*ntotbsensor];
+//è necessario stabilire quali ingressi consideriamo tamper esempio i primi 2 o meglio fare mega vettore in cui setto cosa controllare e cosa no mettere 1 se tamper o 0 se non lo è
+int ntotbinputtampersensor [ntotbinputsensor*ntotbsensor];
 // array in cui salviamo gli stati di riposo a gruppi di
 char rip [ntotbinputsensor*ntotbsensor];
 //array in cui salviamo gli stati trigger che interrogheremo
 char triggerint [ntotbinputsensor*ntotbsensor]; 
-//stringa in cui abbiamo il trigger a 0 che non ha rilevato niente
-//String triggerok; 
+//stato allarme per switch case
+int statealarm = 0;
+//stato allarme precedente per switch case
+int prestatealarm = 0;
+
+//la usiamo per capire se ci sono differenze
+int returnaskinf=-1;
 
 //funzione per copiare elementi char da un array a un altra
 //restituisce il numero della casella in cui ha notato l'ultima differenza
@@ -156,27 +164,30 @@ void loop() {
   if(currentMillis - previousMillis >= interval) {
      // Check WiFi connection status
     if(WiFi.status()== WL_CONNECTED ){ 
-      Serial.println("WIFI connesso");
-      int returnaskinf = askinf(ntotbsensor, &indirizzilista[0], &rip[0], ntotbinputsensor);
-      
-     /* String inputstate= httpGETRequest(indirizzilista[0]);//acquisisco dato da scheda server QUESTO PEZZO SARò DA CANCELLARE
-      Serial.print("Interrogazione di ");
-      Serial.println(indirizzilista[2]);
-      Serial.println(indirizzilista[1]);
-      Serial.println(indirizzilista[0]);
-      Serial.print("Dato ricevuto ");
-      Serial.println(inputstate);
-      if(inputstate=="1"){
-        digitalWrite(ledpin, HIGH);
-        Serial.println("connesso pulsante premuto");
-        }
-      if(inputstate=="0"){        
+      Serial.print("WIFI connesso a ");
+      Serial.println(ssid);
+      Serial.println(WiFi.localIP());
+      delay(1); //sarà necessario aspetttare un po' affinché tutte le schede sensori si carichino i dati
+      switch (statealarm){
+        case 0: // caso caricamento stati riposo
+        Serial.println("Stato 0 carico stati di riposo");
         digitalWrite(ledpin, LOW);
-        Serial.println("connesso pulsante non premuto");     
+        returnaskinf = askinf(ntotbsensor, &indirizzilista[0], &rip[0], ntotbinputsensor);  //appena mi sveglio carico il vettore con gli stati di riposo sarà da fare solo una volta
+        statealarm = 1;
+        break;
+        case 1: //stato allarmi solo se si attivano i tamper
+        break;
+        case 2: //rilevo ingressi sensori esterni
+        break;
+        case 3: //rilevo tutti ingressi tutti sensori
+        break;
+        case 4: // mando in allarme suonando la sirena
+        Serial.println("Mando in allarme");
+        digitalWrite(ledpin, HIGH);
+        break;
+        case 5:
+        break;
       }
-      if(inputstate!="0" && inputstate!="1" || inputstate=="ERRORE") // probabilmente in futuro lasceremo solo errore
-        Serial.println("possibili problemi di connessione ocn la scheda");          //non ho capito perché questo if dà errore*/
-
 
 
       // save the last HTTP GET Request
