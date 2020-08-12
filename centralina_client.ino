@@ -21,36 +21,41 @@ const long interval = 5000;
 //ledpin falsh è il 4
 #define ledpin 4
 
-//Your IP address or domain name with URL path //va bene anche se non sono const(vedo che compils non provsto
-char* serverNameState = "http://192.168.0.21/state";  //è un array non farti ingannare da come è stato dichiarato
-char* serverNameReset = "http://192.168.0.21/reset";  //è un array non farti ingannare da come è stato dichiarato
-
-// array in cui salviamo gli stati di riposo a gruppi di
-char rip;
-//string in cui salviamo gli stati trigger che interrogheremo
-String triggerint; 
-//stringa in cui abbiamo il trigger a 0 che non ha rilevato niente
-String triggerok; 
+//Your IP address or domain name with URL path //va bene anche se non sono const(vedo che compils non provsto DA CANCELLARE APPENA HAI FINITO LE PROVE
+//char* serverNameState = "http://192.168.0.21/state";  //è un array non farti ingannare da come è stato dichiarato
+//char* serverNameReset = "http://192.168.0.21/reset";  //è un array non farti ingannare da come è stato dichiarato
 
 
 //spiegazione array https://www.html.it/pag/15507/cenni-sugli-array-multidimensionali/ ora proviano a mettere in un array multidimensionale tutti gli indirizzi
 //char serveraddress [2][20]={'http://192.168.0.21/http://192.168.0.20/'};  //così sembra compilare, ora avremo un indirizzo ogni 20 celle
 //forse conviene fare l'array con indirizzo e comando così eviti di aggiungerlo dopo, ma prima devi verificare che tu sappia richiamare la parte di array corretta
 //numero totale schede da interrogare
-const int ntotbsensor = 3;
+const unsigned int ntotbsensor = 3;
+//indirizzi schede
 char* indirizzilista [ntotbsensor] ={"http://192.168.0.22/state", "http://192.168.0.21/state", "http://192.168.0.20/state"}; //sembra andare ma non provato nella funzione di ade ask
-//altrimenti ti tocca lavorare al metodo sotto, se no cancellalo costruendo ogni volta le frasi
-//vettore ultima parte indirizzo IP delle schede, valutare se meglio salvarli in char come nella riga più sotto
-//int tipbsensor [ntotbsensor] = {21,21,21};
-//salviamo a parte le ultime due cifre dell'indirizzo IP (quindi saranno a gruppi di 2) dei server sensori in un array di char, lasciamo a fine array uno spazio vuoto da usare eventualmente come terminatore di stringa
-//char finip [3] = "21";
+// numero pin ingresso digitale schede
+const unsigned int ntotbinputsensor = 12;
 
-int copyarraychar(int nelements, char* arrayorig, char* arraydest){ //funzione per copiare elementi char da un array a un altra
-  for(int i=0;i< nelements; i++)
-  arraydest[i]=arrayorig[i];
+// array in cui salviamo gli stati di riposo a gruppi di
+char rip [ntotbinputsensor*ntotbsensor];
+//array in cui salviamo gli stati trigger che interrogheremo
+char triggerint [ntotbinputsensor*ntotbsensor]; 
+//stringa in cui abbiamo il trigger a 0 che non ha rilevato niente
+//String triggerok; 
+
+//funzione per copiare elementi char da un array a un altra
+//restituisce il numero della casella in cui ha notato l'ultima differenza
+int copyarraychar(int nelements, char* arrayorig, char* arraydest){
+  int diverso= -1;
+  for(int i=0;i< nelements; i++){
+    if(arraydest[i]!=arrayorig[i])
+      arraydest[i]=arrayorig[i];
+      diverso = i;
+  }
+  return diverso;
 }
 
-String httpGETRequest(const char* serverName) { //funzione per chiedere info alle altre schede
+String httpGETRequest(const char* serverName) { //funzione per chiedere info alle altre schede, passare come parametro l'indirizzo della scheda
   HTTPClient http;
     
   // Your IP address with path or Domain name with URL path 
@@ -78,19 +83,22 @@ String httpGETRequest(const char* serverName) { //funzione per chiedere info all
 }
 
 //funzione per interrogare lo stato trigger o altre cose delle schede
-int askinf(int totask,const char* addressask, char* answer){
-  int diverso=0;  //ci serve per sapere se notiamo stati trigger diversi rispetto a quelli letti in passato
+//al momento settare   const unsigned int convlenght = 12; //numero di caratteri da convertire da string a char
+//parametri: totale schede a cui chiedere, vettore indirizzi da chiedere, vettore dove salvo risposte, lunghezza dei caratteri da acquisire
+int askinf(const unsigned int totask, char** addressask, char* answer, const unsigned int convlenght){
+  int diverso=-1;  //ci serve per sapere se notiamo stati trigger diversi rispetto a quelli letti in passato
   Serial.print("Interrogo ");
   Serial.print(totask);
-  Serial.println("schede");
-  const unsigned int convlenght = 12; //numero di caratteri da convertire da string a char
+  Serial.println(" schede");
   for(int i=0; i<totask; i++){  //ciclo per interrogare tutte le schede
     Serial.print("Interrogo ");
-    Serial.print(addressask[i]);
+    Serial.println(addressask[i]);
     char bufconv [convlenght];  //buffer temporaneo dove salverò i dati in char della string buf
-    String buf= httpGETRequest(&addressask[i]);//acquisisco dato da scheda server
+    String buf= httpGETRequest(addressask[i]);//acquisisco dato da scheda server
     Serial.print(" ricevuto ");
     Serial.println(buf);
+    if(buf=="ERRORE") //comunichiamo su seriale se ci sono problemi di comunicazione con la scheda sensori 
+      Serial.println("Errori di comunicazione con la scheda sensori");
     buf.toCharArray(bufconv, convlenght); //conversione da string a char di alcuni caatteri
     for(int e=0; e<convlenght;e++){
       if(answer[i*convlenght+e] != bufconv[e]){
@@ -148,7 +156,10 @@ void loop() {
   if(currentMillis - previousMillis >= interval) {
      // Check WiFi connection status
     if(WiFi.status()== WL_CONNECTED ){ 
-      String inputstate= httpGETRequest(indirizzilista[0]);//acquisisco dato da scheda server
+      Serial.println("WIFI connesso");
+      int returnaskinf = askinf(ntotbsensor, &indirizzilista[0], &rip[0], ntotbinputsensor);
+      
+     /* String inputstate= httpGETRequest(indirizzilista[0]);//acquisisco dato da scheda server QUESTO PEZZO SARò DA CANCELLARE
       Serial.print("Interrogazione di ");
       Serial.println(indirizzilista[2]);
       Serial.println(indirizzilista[1]);
@@ -162,25 +173,11 @@ void loop() {
       if(inputstate=="0"){        
         digitalWrite(ledpin, LOW);
         Serial.println("connesso pulsante non premuto");     
-      }/*
+      }
       if(inputstate!="0" && inputstate!="1" || inputstate=="ERRORE") // probabilmente in futuro lasceremo solo errore
-        Serial.println("possibili problemi di connessione ocn la scheda");          *///non ho capito perché questo if dà errore
+        Serial.println("possibili problemi di connessione ocn la scheda");          //non ho capito perché questo if dà errore*/
 
-        /*
-      switch (inputstate)
-      case "1":
-        digitalWrite(ledpin, HIGH);
-        Serial.println("connesso pulsante premuto");
-        break;
-      case "0":
-        digitalWrite(ledpin, LOW);
-        Serial.println("connesso pulsante non premuto");
-       default:
-        Serial.println("possibili problemi di connessione ocn la scheda");
-        }*/
-        inputstate="2";//resettiamao lo stato
-        
-      
+
 
       // save the last HTTP GET Request
       previousMillis = currentMillis;
