@@ -37,8 +37,8 @@ String triggerok;
 //char serveraddress [2][20]={'http://192.168.0.21/http://192.168.0.20/'};  //così sembra compilare, ora avremo un indirizzo ogni 20 celle
 //forse conviene fare l'array con indirizzo e comando così eviti di aggiungerlo dopo, ma prima devi verificare che tu sappia richiamare la parte di array corretta
 //numero totale schede da interrogare
-const int ntotbsensor = 2;
-char* indirizzilista [ntotbsensor] ={"http://192.168.0.21/state", "http://192.168.0.20/state"}; //sembra andare ma non provato nella funzione di ade ask
+const int ntotbsensor = 3;
+char* indirizzilista [ntotbsensor] ={"http://192.168.0.22/state", "http://192.168.0.21/state", "http://192.168.0.20/state"}; //sembra andare ma non provato nella funzione di ade ask
 //altrimenti ti tocca lavorare al metodo sotto, se no cancellalo costruendo ogni volta le frasi
 //vettore ultima parte indirizzo IP delle schede, valutare se meglio salvarli in char come nella riga più sotto
 //int tipbsensor [ntotbsensor] = {21,21,21};
@@ -150,6 +150,8 @@ void loop() {
     if(WiFi.status()== WL_CONNECTED ){ 
       String inputstate= httpGETRequest(indirizzilista[0]);//acquisisco dato da scheda server
       Serial.print("Interrogazione di ");
+      Serial.println(indirizzilista[2]);
+      Serial.println(indirizzilista[1]);
       Serial.println(indirizzilista[0]);
       Serial.print("Dato ricevuto ");
       Serial.println(inputstate);
