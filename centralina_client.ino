@@ -53,6 +53,12 @@ int prestatealarm = 0;
 //la usiamo per capire se ci sono differenze
 int returnaskinf=-1;
 
+//funzione stampa nel elementi di array partendo dal primo
+void fprintarray (int nel, char* arrayc){
+  for(int i=0; i<nel; i++)
+  Serial.print(arrayc[i]);  
+}
+
 //funzione per copiare elementi char da un array a un altra
 //restituisce il numero della casella in cui ha notato l'ultima differenza
 int copyarraychar(int nelements, char* arrayorig, char* arraydest){
@@ -112,8 +118,15 @@ int askinf(const unsigned int totask, char** addressask, char* answer, const uns
     buf.toCharArray(bufconv, convlenght); //conversione da string a char di alcuni caatteri
     for(int e=0; e<convlenght;e++){
       if(answer[i*convlenght+e] != bufconv[e]){
+      Serial.print("rilevato diverso elemento ");
+      Serial.print(e);
+      Serial.print(" dell'array rilevato ");
+      Serial.print(bufconv[e]);   
+      Serial.print(" invece di "); 
+      Serial.print(answer[i*convlenght+e]); 
+      Serial.println(" sovrascrivo nella memoria "); 
       answer[i*convlenght+e]= bufconv[e]; //salvo il dato nel mega array
-      diverso =1;  //quindi abbiamo notato stati diversi e lo notifichiamo
+      diverso =1;  //quindi abbiamo notato stati diversi e lo notifichiamo 
       }
     }
   }
@@ -183,7 +196,7 @@ void loop() {
         Serial.println("Stato 1 rilevo se ci sono manomissione tamper");
         digitalWrite(ledpin, LOW);  //spegniamo eventuali sirene
         returnaskinf = askinf(ntotbsensor, &indirizzilista[0], &triggering[0], ntotbinputsensor); //controllo gli stati dei sensori
-        if(returnaskinf !=0)
+        if(returnaskinf != -1)
           statealarm = 4; //abbiamo rilevato mvimento e quindi vai in allarme
         else
           statealarm = 1; //non abbiamo rilevato niente ricontrollliamo   
@@ -196,7 +209,13 @@ void loop() {
         break;
         case 4: // mando in allarme suonando la sirena
         Serial.println("Mando in allarme");
-        digitalWrite(ledpin, HIGH);      
+        digitalWrite(ledpin, HIGH);
+        Serial.println("rilevato cambio di stato ingressi, rilevato: ");
+        //Serial.println(triggering); //stampa solo alcuni elementi 
+        fprintarray(ntotbinputsensor*ntotbsensor, triggering);
+        Serial.println("invece di : ");
+        //Serial.println(rip);  //stampa solo alcuni elementi
+        fprintarray(ntotbinputsensor*ntotbsensor, rip);       
                 //sarà da mettere if se rilevo input cambio stato  
         break;
         case 5:
