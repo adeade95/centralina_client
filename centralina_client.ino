@@ -1,5 +1,7 @@
 //DOVREMO fsre un megs bettore char dove inserire indirizzi IP che andremo a integrare con i comandi
 //e un mega vettore dove gestire risposte e stati
+//settaggi compilatore CON ESP32 CAM
+//ESP32 WROVER MODULE, HUGE APP(3MB NO OTA, 1MB SPIFFS) QIO, 80MHz, 921600
 
 //impostazione router casa nuova piano superiore
 const char* ssid = "TP-LINK_FF52";
@@ -42,7 +44,7 @@ int ntotbinputtampersensor [ntotbinputsensor*ntotbsensor];
 // array in cui salviamo gli stati di riposo a gruppi di
 char rip [ntotbinputsensor*ntotbsensor];
 //array in cui salviamo gli stati trigger che interrogheremo
-char triggerint [ntotbinputsensor*ntotbsensor]; 
+char triggering [ntotbinputsensor*ntotbsensor]; 
 //stato allarme per switch case
 int statealarm = 0;
 //stato allarme precedente per switch case
@@ -173,9 +175,20 @@ void loop() {
         Serial.println("Stato 0 carico stati di riposo");
         digitalWrite(ledpin, LOW);
         returnaskinf = askinf(ntotbsensor, &indirizzilista[0], &rip[0], ntotbinputsensor);  //appena mi sveglio carico il vettore con gli stati di riposo sarà da fare solo una volta
+        returnaskinf = 0; //lo metto comunque a zero per evitare che salti l'allarme in qualche step successivo
+        copyarraychar(ntotbinputsensor*ntotbsensor,&rip[0],&triggering[0]); // lo copio anche qui così sono pronto per lo step 1 FORSE QUESTA AZIONE è SBAGLIATA     
         statealarm = 1;
         break;
         case 1: //stato allarmi solo se si attivano i tamper
+        Serial.println("Stato 1 rilevo se ci sono manomissione tamper");
+        digitalWrite(ledpin, LOW);  //spegniamo eventuali sirene
+        returnaskinf = askinf(ntotbsensor, &indirizzilista[0], &triggering[0], ntotbinputsensor); //controllo gli stati dei sensori
+        if(returnaskinf !=0)
+          statealarm = 4; //abbiamo rilevato mvimento e quindi vai in allarme
+        else
+          statealarm = 1; //non abbiamo rilevato niente ricontrollliamo   
+        //SARà DA FARE FUNZIONE CHE DICE CHE DESCRIVE GLI STATI DI TUTTO
+        //sarà da mettere if se rilevo input cambio stato     
         break;
         case 2: //rilevo ingressi sensori esterni
         break;
@@ -183,7 +196,8 @@ void loop() {
         break;
         case 4: // mando in allarme suonando la sirena
         Serial.println("Mando in allarme");
-        digitalWrite(ledpin, HIGH);
+        digitalWrite(ledpin, HIGH);      
+                //sarà da mettere if se rilevo input cambio stato  
         break;
         case 5:
         break;
